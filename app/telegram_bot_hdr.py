@@ -14,7 +14,10 @@ import requests
 from dotenv import dotenv_values
 
 # Custom imports
-import general_methods as gm
+try:
+    import general_methods as gm
+except ModuleNotFoundError:
+    import app.general_methods as gm
 
 
 class TelegramBotHdr:

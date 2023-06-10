@@ -22,4 +22,4 @@ class WebhookHdr:
         self.redirect_response(self.response)
 
     def redirect_response(self, response):
-        pass
+        print(response)
