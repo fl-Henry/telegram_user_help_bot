@@ -1,4 +1,5 @@
 # ./sandbox.py
+import sys
 import requests
 
 from dotenv import dotenv_values
@@ -11,6 +12,10 @@ config = dotenv_values("./app/.env")
 ACCESS_TOKEN = config['ACCESS_TOKEN']
 WEBHOOK_URL = config['WEBHOOK_URL']
 
+print(WEBHOOK_URL)
+
+sys.exit()
+
 tg = TelegramBotHdr(ACCESS_TOKEN)
 
 
@@ -22,4 +27,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    pass
+    # main()

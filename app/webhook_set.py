@@ -11,5 +11,6 @@ WEBHOOK_URL = config['WEBHOOK_URL']
 
 tg = TelegramBotHdr(ACCESS_TOKEN)
 tg.set_webhook(WEBHOOK_URL)
+tg.get_webhook_info()
 
 

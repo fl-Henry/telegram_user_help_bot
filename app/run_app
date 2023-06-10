@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Exit with waiting for type <enter> before exit
+err_exit(){
+  echo '[ERROR]'
+  printf "%s " "Press enter to continue"
+  read -r
+  exit "$1"
+}
+
+# Get the option
+while [ "$#" -gt 0 ]
+do
+   case "$1" in
+
+     -h|--help)
+      help="--help"
+      str_param+="$help "
+      printf "%s " " $help';"
+      ;;
+
+   -*)
+      echo "Invalid option '$1'. Use -h or --help to see the valid options" >&2
+      err_exit 1
+      ;;
+
+   *)
+      echo "Invalid option '$1'. Use -h or --help to see the valid options" >&2
+      err_exit 1
+   ;;
+   esac
+   shift
+done
+echo
+
+# Set webhook url
+echo "Set Webhook"
+python webhook_set.py
+
+# Start flask server
+echo "flask run"
+flask run -h 0.0.0.0 -p 8443
+
+# Delete all webhooks
+echo "Delete Webhook"
+python webhook_delete.py
