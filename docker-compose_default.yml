@@ -6,7 +6,12 @@ services:
     image: postgres
     restart: always
     environment:
+      POSTGRES_USER: <user_name>
       POSTGRES_PASSWORD: <password>
+      POSTGRES_DB: <db_name>
+      PGDATA: /usr/src/db_data
+    volumes:
+      - ./db_data:/usr/src/db_data
 
   adminer:
     image: adminer

@@ -353,16 +353,39 @@ def find_all_chars(main_str, char):
     return char_indexes_list
 
 
-def find_string_indexes(in_string, string_to_find):
+def find_string_indexes(main_string, find_string):
     """
-    :param in_string:
-    :param string_to_find:
-    :return: [first_index, last_indes] or None
+        Finds first occurrence and returns start and end index of string
+    :param main_string:     | string that probably contain find_string
+    :param find_string:     | string that probably may be in main_string
+    :return: [first_index, last_index] or None
     """
-    for index in range(len(in_string) - len(string_to_find) + 1):
-        if in_string[index:index + len(string_to_find)] == string_to_find:
-            return index, index + len(string_to_find)
+    for index in range(len(main_string) - len(find_string) + 1):
+        if main_string[index:index + len(find_string)] == find_string:
+            return index, index + len(find_string)
     return None
+
+
+def find_all_strings(main_string, find_string):
+    """
+        Finds all occurrences and returns list of indexes (start and end index of string)
+    :param main_string:     | string that probably contain find_string
+    :param find_string:     | string that probably may be in main_string
+    :return: [[first_index, last_index], ...]
+    """
+    list_to_return = []
+    last_char = 0
+    max_index = len(main_string)
+    while last_char < max_index:
+        indexes = find_string_indexes(main_string, find_string)
+        if indexes is not None:
+            main_string = main_string[indexes[1]:]
+            indexes = [x + last_char for x in indexes]
+            list_to_return.append(indexes)
+            last_char = indexes[1]
+        else:
+            break
+    return list_to_return
 
 
 def str_equals_str(str_1, str_2):
