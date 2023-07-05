@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cd ./app/docker
+python build_docker-compose_yaml.py
+docker compose up
+

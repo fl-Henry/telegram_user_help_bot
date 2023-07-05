@@ -1,8 +1,9 @@
 FROM python
 
-WORKDIR /usr/src/app
+WORKDIR /usr/app
 
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
+WORKDIR /usr/app/src
 ENTRYPOINT tail -f /dev/null

@@ -1,6 +1,5 @@
 # ./sandbox.py
-import sys
-import requests
+
 
 from dotenv import dotenv_values
 

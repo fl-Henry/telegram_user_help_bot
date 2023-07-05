@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd ./app/docker
+docker build -t flhenry/aft_telegram -f ./dockerfile ../
+

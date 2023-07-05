@@ -14,10 +14,7 @@ import requests
 from dotenv import dotenv_values
 
 # Custom imports
-try:
-    import general_methods as gm
-except ModuleNotFoundError:
-    import app.general_methods as gm
+from general_methods import gm
 
 
 class TelegramBotHdr:
@@ -57,6 +54,58 @@ class TelegramBotHdr:
         url = self.endpoint_url(endpoint)
         response = requests.post(url).json()
         self._response_result(response)
+
+    def send_message(self, json_data):
+        """
+            https://core.telegram.org/bots/api#sendmessage
+            {
+                "chat_id": Integer or String,
+                "text": String,
+            }
+        :param json_data:
+        :return:
+        """
+        endpoint = "sendMessage"
+        url = self.endpoint_url(endpoint)
+        response = requests.post(url, json=json_data).json()
+        self._response_result(response)
+        return True
+
+    @staticmethod
+    def build_buttons(options_list, entrypoint: str):
+        """
+            https://core.telegram.org/bots/api#inlinekeyboardmarkup
+            {
+                "text": String,
+                "callback_data": String,
+            }
+        :options_list: list(str)
+        :return:
+        """
+        return [
+            {
+                "text": x,
+                "callback_data": f"{entrypoint}?{counter}",
+            }
+            for x, counter in zip(options_list, range(len(options_list)))
+        ]
+
+    @staticmethod
+    def build_buttons_markup(buttons_list, columns_number, markup_name):
+        return {markup_name: [x for x in gm.UrlIterator(buttons_list, columns_number)]}
+
+    def inline_button(self):
+        """
+            https://core.telegram.org/bots/api#inlinekeyboardmarkup
+            {
+                "text": String,
+                "callback_data": String,
+            }
+        :return:
+        """
+        pass
+
+
 
 
 def main():

@@ -1,5 +1,5 @@
 # ./app/postgresql_hdr
-import psycopg2
+import psycopg2 as pg2
 
 
 class PostgresConnectionParameters:
@@ -46,7 +46,7 @@ class PostgresqlHdr:
 
     def connect_db(self):
         # Connect to an existing database
-        self.conn = psycopg2.connect(
+        self.conn = pg2.connect(
             dbname=self._pcp.dbname,
             user=self._pcp.user,
             password=self._pcp.password,

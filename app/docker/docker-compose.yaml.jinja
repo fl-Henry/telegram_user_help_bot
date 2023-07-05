@@ -6,12 +6,12 @@ services:
     image: postgres
     restart: always
     environment:
-      POSTGRES_USER: <user_name>
-      POSTGRES_PASSWORD: <password>
-      POSTGRES_DB: <db_name>
-      PGDATA: /usr/src/db_data
+      POSTGRES_USER: {{ pg_user }}
+      POSTGRES_PASSWORD: {{ pg_password }}
+      POSTGRES_DB: {{ pg_db }}
+      PGDATA: /usr/app/db_data/pg_data
     volumes:
-      - ./db_data:/usr/src/db_data
+      - ../db_data/pg_data:/usr/app/db_data/pg_data
 
   adminer:
     image: adminer
@@ -23,6 +23,7 @@ services:
     image: flhenry/aft_telegram
     restart: always
     volumes:
-      - ./app:/usr/src/app
+      - ../src:/usr/app/src
+      - ../db_data:/usr/app/db_data/
     ports:
       - 8443:8443
