@@ -73,9 +73,36 @@ class PostgresqlHdr:
         command.replace("'%s'", "%s")
         self.cur.execute(command, data)
 
-    def select(self):
+    def select(self, table, columns=None, sql_conditions=""):
         # Query the database and obtain data as Python objects
-        command = "SELECT * FROM test;"
+        if columns is None:
+            columns = "*"
+        else:
+            columns = f"({', '.join(columns)})"
+        command = f"SELECT {columns} FROM {table} {sql_conditions};"
         data = ()
         self.exec(command, *data)
-        self.cur.fetchone()
+        return self.cur.fetchall()
+
+    def insert_one(self, table, data_dict: dict):
+        """
+
+        :param table:           | table_name
+        :param data_dict:       | {"column_name": "value", ...}
+        :return:
+        """
+        command = f"INSERT INTO {table} ({', '.join([*data_dict.keys()])}) " \
+                  f"VALUES ({', '.join(['%s' for _ in data_dict.keys()])});"
+
+        data = [*data_dict.values()]
+
+        try:
+            self.exec(command, *data)
+            self.commit()
+            status = True
+        except pg2.errors.UniqueViolation:
+            self.conn.rollback()
+            status = "UNIQUE"
+
+        return status
+

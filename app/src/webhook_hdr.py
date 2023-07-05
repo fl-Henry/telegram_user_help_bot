@@ -40,23 +40,76 @@ class WebhookHdr:
         self.chat_id = self.get_chat_id()
         self.redirect_response()
 
-    def save_to_db(self):
-
-        def save_user_info(user_info):
-            pg_hdr = PostgresqlHdr(self.pg_cfg)
-
-            command = """
-            """
-
-            pg_hdr.commit()
-            pg_hdr.close()
-
-        if self.response.get("message") is not None:
-            if self.response.get("from") is not None:
-                save_user_info(self.response.get("from"))
-
     def tg_build_response(self):
         pass
+
+    # # ===== Get from DB =========================================================================== Get from DB =====
+    ...
+    # # ===== Get from DB =========================================================================== Get from DB =====
+
+    def check_staff_user(self):
+        pg = PostgresqlHdr(pcp=self.pg_cfg)
+        staff_info_list = pg.select("staff_info")
+        pg.close()
+
+        # TODO lowercase
+        for staff_info in staff_info_list:
+            if self.response.get("message").get("from").get("username") in staff_info:
+                return True
+
+        return False
+
+    # # ===== Save to DB ============================================================================= Save to DB =====
+    ...
+    # # ===== Save to DB ============================================================================= Save to DB =====
+
+    def save_message_data(self):
+        pg = PostgresqlHdr(pcp=self.pg_cfg)
+        user_info = {
+            "id": self.response.get("message").get("from").get("id"),
+            "is_bot": self.response.get("message").get("from").get("is_bot"),
+            "first_name": self.response.get("message").get("from").get("first_name"),
+            "last_name": self.response.get("message").get("from").get("last_name"),
+            "username": self.response.get("message").get("from").get("username"),
+            "language_code": self.response.get("message").get("from").get("language_code"),
+        }
+        pg.insert_one("user_info", user_info)
+
+        messages_data = {
+            "user_id": user_info["id"],
+            "message": self.response.get("message").get("text"),
+            "responded": "false",
+        }
+        pg.insert_one("messages", messages_data)
+
+        pg.commit()
+        pg.close()
+
+    def save_callback_data(self):
+        pg = PostgresqlHdr(pcp=self.pg_cfg)
+        user_info = {
+            "id": self.response.get("callback_query").get("from").get("id"),
+            "is_bot": self.response.get("callback_query").get("from").get("is_bot"),
+            "first_name": self.response.get("callback_query").get("from").get("first_name"),
+            "last_name": self.response.get("callback_query").get("from").get("last_name"),
+            "username": self.response.get("callback_query").get("from").get("username"),
+            "language_code": self.response.get("callback_query").get("from").get("language_code"),
+        }
+        pg.insert_one("user_info", user_info)
+
+        messages_data = {
+            "user_id": user_info["id"],
+            "message": self.response.get("callback_query").get("data"),
+            "responded": "false",
+        }
+        pg.insert_one("messages", messages_data)
+
+        pg.commit()
+        pg.close()
+
+    # # ===== Telegram responses to a user ========================================= Telegram responses to a user =====
+    ...
+    # # ===== Telegram responses to a user ========================================= Telegram responses to a user =====
 
     def send_first_questions(self, question_num, entrypoint):
         """
@@ -65,11 +118,12 @@ class WebhookHdr:
         :param entrypoint:
         :return:
         """
+
         buttons = self.tg.build_buttons(
             self.answers.get("/start").get("first_questions_prompt").get(question_num),
             entrypoint
         )
-        print("Buttons:", buttons)
+
         keys_markup = self.tg.build_buttons_markup(buttons, 2, "inline_keyboard")
         json_data = {
             "chat_id": self.chat_id,
@@ -80,6 +134,7 @@ class WebhookHdr:
 
     def after_first_questions(self):
         entrypoint = "/start"
+        self.save_callback_data()
         json_data = {
             "chat_id": self.chat_id,
             "text": self.answers.get(entrypoint).get("after_first_questions"),
@@ -101,28 +156,15 @@ class WebhookHdr:
 
         return True
 
-    def check_for_commands(self, message):
-        entrypoint = message[:gm.find_char_index(message, "?")]
+    def next_user(self):
+        if self.check_staff_user():
+            print("Success")
+        else:
+            print("Fail")
 
-        print("\n", entrypoint)
-        match entrypoint:
-            case "/start":
-                return self.start()
-
-            case "/start/first_questions/01":
-                return self.send_first_questions("02", gm.url_parent(entrypoint)+"02")
-
-            case "/start/first_questions/02":
-                return self.send_first_questions("03", gm.url_parent(entrypoint)+"03")
-
-            case "/start/first_questions/02":
-                return self.send_first_questions("03", gm.url_parent(entrypoint)+"03")
-
-            case "/start/first_questions/03":
-                return self.after_first_questions()
-
-            case _:
-                print("Not command:", message)
+    # # ===== Redirection =========================================================================== Redirection =====
+    ...
+    # # ===== Redirection =========================================================================== Redirection =====
 
     def get_chat_id(self):
         if self.response.get("message") is None:
@@ -133,9 +175,53 @@ class WebhookHdr:
         else:
             return self.response.get("message").get("chat").get("id")
 
+    def check_for_commands(self, message):
+        entrypoint_str: str = message[:gm.find_char_index(message, "?")]
+
+        if entrypoint_str[0] == "/":
+            entrypoint = entrypoint_str.split("/")[1:]
+            match entrypoint[0]:
+
+                case "start":
+
+                    # If there is anything else after /start/...
+                    if len(entrypoint) > 1:
+                        match "/".join(entrypoint[1:]).split("?")[0]:
+
+                            case "first_questions/01":
+                                self.save_callback_data()
+                                self.send_first_questions("02", gm.url_parent(entrypoint_str)+"02")
+
+                            case "first_questions/02":
+                                self.save_callback_data()
+                                self.send_first_questions("03", gm.url_parent(entrypoint_str)+"03")
+
+                            case "first_questions/03":
+                                self.save_callback_data()
+                                self.after_first_questions()
+
+                            case _:
+                                print("Unknown command:", message)
+
+                    # If command is /start
+                    else:
+                        self.start()
+
+                case "next_user":
+                    self.next_user()
+
+                case _:
+                    print("Unknown command:", message)
+
+        else:
+            self.save_message_data()
+
     def redirect_response(self):
+
+        print(self.response)
+        print()
         if self.response.get("message") is not None:
-            func = self.check_for_commands(self.response.get("message").get("text"))
+            self.check_for_commands(self.response.get("message").get("text"))
 
         if self.response.get("callback_query") is not None:
             self.check_for_commands(self.response.get("callback_query").get("data"))
