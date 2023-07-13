@@ -72,7 +72,7 @@ class TelegramBotHdr:
         return True
 
     @staticmethod
-    def build_buttons(options_list, entrypoint: str):
+    def build_inline_buttons(options_list, entrypoint: str):
         """
             https://core.telegram.org/bots/api#inlinekeyboardmarkup
             {
@@ -91,8 +91,20 @@ class TelegramBotHdr:
         ]
 
     @staticmethod
+    def build_keyboard_button(button_text_list):
+        """
+        :param button_text_list:
+        :return:
+        """
+        return [{"text": x} for x in button_text_list]
+
+    @staticmethod
     def build_buttons_markup(buttons_list, columns_number, markup_name):
-        return {markup_name: [x for x in gm.UrlIterator(buttons_list, columns_number)]}
+        return {
+            markup_name: [x for x in gm.UrlIterator(buttons_list, columns_number)],
+            "is_persistent": True,
+            "resize_keyboard": True,
+        }
 
     def inline_button(self):
         """
@@ -104,8 +116,6 @@ class TelegramBotHdr:
         :return:
         """
         pass
-
-
 
 
 def main():
