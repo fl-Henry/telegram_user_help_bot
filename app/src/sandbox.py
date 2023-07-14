@@ -1,7 +1,7 @@
+from random import randint
 
-answers = {
-    "/get_lost_count": "На данный момент количество пользователей, которые ожидают ответа на свои вопросы: {users_number} .\n\nЧтобы отобразить следующего пользователя с нерешенными вопросами воспользуйтесь клавиатурой с командами в нижней части экрана или используйте команду /next_user ."
-}
-user_info_list = ["sd", "sdf"]
-text = str(answers.get("/get_lost_count")).format(**{"users_number": len(user_info_list)})
-print(text)
+user_info_list = [0, 1, 2, 3, 4, 5, 6]
+index = randint(0, len(user_info_list) - 1)
+print(index)
+user_info = user_info_list[index]
+print(user_info)

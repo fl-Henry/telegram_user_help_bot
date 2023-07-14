@@ -99,7 +99,7 @@ class WebhookHdr:
             "answered": "false",
         }
         pg.insert_one("messages", messages_data)
-        pg.close()
+        self.mark_user_as_not_answered(user_info["id"])
 
     def save_callback_data(self):
         pg = PostgresqlHdr(pcp=self.pg_cfg)
@@ -114,14 +114,17 @@ class WebhookHdr:
         pg.insert_one("user_info", user_info)
 
         message = str(self.response.get("callback_query").get("data"))
-
-        message += f"+{self.text_json.get('/start').get('first_questions').get(message.split('/')[-1])}"
         messages_data = {
             "user_id": user_info["id"],
             "message": message,
             "answered": "false",
         }
         pg.insert_one("messages", messages_data)
+        self.mark_user_as_not_answered(user_info["id"])
+
+    def mark_user_as_not_answered(self, user_id):
+        pg = PostgresqlHdr(pcp=self.pg_cfg)
+        pg.update("user_info", {"answered": False, "in_process": False}, f"WHERE id={user_id}")
         pg.close()
 
     def mark_msgs_as_answered(self, user_id):
@@ -255,11 +258,10 @@ class WebhookHdr:
             "text": self.text_json.get("/start").get("text"),
         }
         self.tg.send_message(json_data)
-        self.send_first_questions("01", "/start/first_questions/01")
+        self.send_first_questions("_01", "/start/first_questions/_01")
 
     def start(self):
-        entrypoint = "/start/first_questions/00"
-        self.send_first_questions("00", entrypoint)
+        self.send_first_questions("_00", "/start/first_questions/_00")
 
     # # ===== Redirection =========================================================================== Redirection =====
     ...
@@ -278,20 +280,20 @@ class WebhookHdr:
                     if len(entrypoint) > 1:
                         match "/".join(entrypoint[1:]).split("?")[0]:
 
-                            case "first_questions/00":
+                            case "first_questions/_00":
                                 self.save_callback_data()
                                 self.update_lang(message[gm.find_char_index(message, "?")+1:])
                                 self.greetings()
 
-                            case "first_questions/01":
+                            case "first_questions/_01":
                                 self.save_callback_data()
-                                self.send_first_questions("02", gm.url_parent(entrypoint_str)+"02")
+                                self.send_first_questions("_02", gm.url_parent(entrypoint_str)+"_02")
 
-                            case "first_questions/02":
+                            case "first_questions/_02":
                                 self.save_callback_data()
-                                self.send_first_questions("03", gm.url_parent(entrypoint_str)+"03")
+                                self.send_first_questions("_03", gm.url_parent(entrypoint_str)+"_03")
 
-                            case "first_questions/03":
+                            case "first_questions/_03":
                                 self.save_callback_data()
                                 self.after_first_questions()
 
@@ -313,9 +315,6 @@ class WebhookHdr:
 
                 case "end":
                     self.end()
-
-                case "lang":
-                    self.lang()
 
                 case _:
                     print("Unknown command:", message)
